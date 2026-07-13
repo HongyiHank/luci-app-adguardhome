@@ -181,7 +181,7 @@ EXIT(){
 
 main(){
 	# Check if already running
-	if pgrep -f "/usr/share/AdGuardHome/update_core.sh" | grep -v "^$$$" > /dev/null; then
+	if pgrep -f "[/]usr/share/AdGuardHome/update_core.sh" | grep -v "^$$$" > /dev/null; then
 		echo "A task is already running."
 		exit 2
 	fi

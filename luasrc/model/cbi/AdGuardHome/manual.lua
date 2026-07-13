@@ -22,24 +22,27 @@ o.cfgvalue = function(self, section)
 	return fs.readfile("/tmp/AdGuardHometmpconfig.yaml") or fs.readfile(configpath) or fs.readfile("/usr/share/AdGuardHome/AdGuardHome_template.yaml") or ""
 end
 o.validate=function(self, value)
-	m.message = "Configuration validation passed"
 	fs.writefile("/tmp/AdGuardHometmpconfig.yaml", value:gsub("\r\n", "\n"))
-	if fs.access(binpath) then
-		sys.call(binpath.." -c /tmp/AdGuardHometmpconfig.yaml --check-config 2>&1 | grep '\\[error\\]' > /tmp/AdGuardHometest.log")
-		if (fs.readfile("/tmp/AdGuardHometest.log")=="") then
-			return value
-		end
-	else
+	if not fs.access(binpath) then
+		m.message = translate("Core binary not found; configuration not validated or saved")
+		return nil
+	end
+	sys.call(binpath.." -c /tmp/AdGuardHometmpconfig.yaml --check-config 2>&1 | grep '\\[error\\]' > /tmp/AdGuardHometest.log")
+	local log = fs.readfile("/tmp/AdGuardHometest.log") or ""
+	if log=="" then
+		m.message = translate("Configuration validation passed")
 		return value
 	end
-	m.message = translate("Configuration validation failed").." "..fs.readfile("/tmp/AdGuardHometest.log")
+	m.message = translate("Configuration validation failed").." "..log
 	return nil
 end
 o.write = function(self, section, value)
 	fs.move("/tmp/AdGuardHometmpconfig.yaml",configpath)
 end
 o.remove = function(self, section, value)
-	fs.writefile(configpath, "")
+	local tpl = fs.readfile("/usr/share/AdGuardHome/AdGuardHome_template.yaml") or ""
+	fs.writefile(configpath, tpl)
+	fs.remove("/tmp/AdGuardHometmpconfig.yaml")
 end
 --- js and reload button
 o = s:option(DummyValue, "")
@@ -50,9 +53,9 @@ if not fs.access(binpath) then
 end
 --- log
 if (fs.access("/tmp/AdGuardHometmpconfig.yaml")) then
-	local c=fs.readfile("/tmp/AdGuardHometest.log")
+	local c=fs.readfile("/tmp/AdGuardHometest.log") or ""
 	if (c~="") then
-		m.message = translate("Configuration validation failed").." "..fs.readfile("/tmp/AdGuardHometest.log")
+		m.message = translate("Configuration validation failed").." "..c
 	end
 end
 

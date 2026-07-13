@@ -53,6 +53,16 @@ fi
 exit 0
 endef
 
+define Package/$(PKG_NAME)/postrm
+#!/bin/sh
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	/etc/init.d/AdGuardHome stop >/dev/null 2>&1
+	sed -i '/\/usr\/share\/AdGuardHome/d' /etc/crontabs/root 2>/dev/null
+	rm -f /tmp/AdGuardHome_* /var/run/AdG_* 2>/dev/null
+fi
+exit 0
+endef
+
 include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature

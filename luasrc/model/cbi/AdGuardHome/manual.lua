@@ -6,10 +6,16 @@ require("string")
 require("io")
 require("table")
 
+-- same rules as init.d valid_path / base.lua safe_path
+local function safe_path(p)
+	return p and p:match("^/[%w/._%-]+$") and not p:match("%.%.") and not p:find("//", 1, true)
+end
+
 m = Map("AdGuardHome")
 local configpath = uci:get("AdGuardHome","AdGuardHome","configpath")
 local binpath = uci:get("AdGuardHome","AdGuardHome","binpath")
-if not (binpath and binpath:match("^/[%w/._%-]+$")) then binpath="" end
+if not safe_path(configpath) then configpath = nil end
+if not safe_path(binpath) then binpath = "" end
 s = m:section(TypedSection, "AdGuardHome")
 s.anonymous=true
 s.addremove=false
@@ -19,11 +25,18 @@ o.rows = 66
 o.wrap = "off"
 o.rmempty = true
 o.cfgvalue = function(self, section)
-	return fs.readfile("/tmp/AdGuardHometmpconfig.yaml") or fs.readfile(configpath) or fs.readfile("/usr/share/AdGuardHome/AdGuardHome_template.yaml") or ""
+	return fs.readfile("/tmp/AdGuardHometmpconfig.yaml")
+		or (configpath and fs.readfile(configpath))
+		or fs.readfile("/usr/share/AdGuardHome/AdGuardHome_template.yaml")
+		or ""
 end
 o.validate=function(self, value)
+	if not configpath then
+		m.message = translate("Invalid config path")
+		return nil
+	end
 	fs.writefile("/tmp/AdGuardHometmpconfig.yaml", value:gsub("\r\n", "\n"))
-	if not fs.access(binpath) then
+	if not binpath or binpath=="" or not fs.access(binpath) then
 		m.message = translate("Core binary not found; configuration not validated or saved")
 		return nil
 	end
@@ -37,9 +50,11 @@ o.validate=function(self, value)
 	return nil
 end
 o.write = function(self, section, value)
-	fs.move("/tmp/AdGuardHometmpconfig.yaml",configpath)
+	if not configpath then return end
+	fs.move("/tmp/AdGuardHometmpconfig.yaml", configpath)
 end
 o.remove = function(self, section, value)
+	if not configpath then return end
 	local tpl = fs.readfile("/usr/share/AdGuardHome/AdGuardHome_template.yaml") or ""
 	fs.writefile(configpath, tpl)
 	fs.remove("/tmp/AdGuardHometmpconfig.yaml")

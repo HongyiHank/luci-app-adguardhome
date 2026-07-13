@@ -2,9 +2,9 @@ module("luci.controller.AdGuardHome",package.seeall)
 local fs=require"nixio.fs"
 local http=require"luci.http"
 local uci=require"luci.model.uci".cursor()
--- allow absolute paths with [A-Za-z0-9/._-] only (same as init.d valid_path / CBI safe_path)
+-- same rules as init.d valid_path: [A-Za-z0-9/._-], no .., no //
 local function safe_path(p)
-	return p and p:match("^/[%w/._%-]+$") ~= nil
+	return p and p:match("^/[%w/._%-]+$") and not p:match("%.%.") and not p:find("//", 1, true)
 end
 function index()
 entry({"admin", "services", "AdGuardHome"},alias("admin", "services", "AdGuardHome", "base"),_("AdGuard Home"), 10).dependent = true

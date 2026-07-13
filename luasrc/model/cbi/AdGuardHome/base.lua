@@ -4,14 +4,22 @@ require("io")
 local m,s,o,o1
 local fs=require"nixio.fs"
 local uci=require"luci.model.uci".cursor()
+-- same rules as init.d valid_path: [A-Za-z0-9/._-], no .., no //
 local function safe_path(p)
-    return p and p:match("^/[%w/._%-]+$")
+	return p and p:match("^/[%w/._%-]+$") and not p:match("%.%.") and not p:find("//", 1, true)
+end
+local function path_err(msg)
+	if m.message then
+		m.message = m.message.."\n"..msg
+	else
+		m.message = msg
+	end
 end
 local configpath=uci:get("AdGuardHome","AdGuardHome","configpath") or "/etc/AdGuardHome.yaml"
 if not safe_path(configpath) then configpath="" end
 local binpath=uci:get("AdGuardHome","AdGuardHome","binpath") or "/usr/bin/AdGuardHome/AdGuardHome"
 if not safe_path(binpath) then binpath="" end
-httpport=uci:get("AdGuardHome","AdGuardHome","httpport") or "3000"
+local httpport=uci:get("AdGuardHome","AdGuardHome","httpport") or "3000"
 m = Map("AdGuardHome", "AdGuard Home")
 m.description = translate("A powerful LuCI interface for managing AdGuard Home - a DNS-based ad and tracker blocker that protects all devices on your network").."<br/>"..translate("<a href=\"https://github.com/stevenjoezhang/luci-app-adguardhome\" target=\"_blank\">⭐ Star on GitHub</a>")
 m:section(SimpleSection).template  = "AdGuardHome/status"
@@ -94,16 +102,16 @@ o.datatype    = "string"
 o.optional = false
 o.rmempty=false
 o.validate=function(self, value)
-if value=="" then return nil end
-if fs.stat(value,"type")=="dir" then
-	if (m.message) then
-	m.message =m.message.."\nerror!bin path is a dir"
-	else
-	m.message ="error!bin path is a dir"
+	if not value or value=="" then return nil end
+	if not safe_path(value) then
+		path_err("error!bin path is invalid")
+		return nil
 	end
-	return nil
-end 
-return value
+	if fs.stat(value,"type")=="dir" then
+		path_err("error!bin path is a dir")
+		return nil
+	end
+	return value
 end
 --- arch
 o = s:taboption("core", ListValue, "arch", translate("Executable file architecture"))
@@ -142,16 +150,16 @@ o.datatype    = "string"
 o.optional = false
 o.rmempty=false
 o.validate=function(self, value)
-if value==nil then return nil end
-if fs.stat(value,"type")=="dir" then
-	if m.message then
-	m.message =m.message.."\nerror!config path is a dir"
-	else
-	m.message ="error!config path is a dir"
+	if not value or value=="" then return nil end
+	if not safe_path(value) then
+		path_err("error!config path is invalid")
+		return nil
 	end
-	return nil
-end 
-return value
+	if fs.stat(value,"type")=="dir" then
+		path_err("error!config path is a dir")
+		return nil
+	end
+	return value
 end
 
 -- work dir
@@ -161,20 +169,19 @@ o.datatype    = "string"
 o.optional = false
 o.rmempty=false
 o.validate=function(self, value)
-if value=="" then return nil end
-if fs.stat(value,"type")=="reg" then
-	if m.message then
-	m.message =m.message.."\nerror!work dir is a file"
-	else
-	m.message ="error!work dir is a file"
+	if not value or value=="" then return nil end
+	if string.sub(value, -1)=="/" then
+		value = string.sub(value, 1, -2)
 	end
-	return nil
-end 
-if string.sub(value, -1)=="/" then
-	return string.sub(value, 1, -2)
-else
+	if not safe_path(value) then
+		path_err("error!work dir is invalid")
+		return nil
+	end
+	if fs.stat(value,"type")=="reg" then
+		path_err("error!work dir is a file")
+		return nil
+	end
 	return value
-end
 end
 
 -- log file
@@ -182,15 +189,18 @@ o = s:taboption("core", Value, "logfile", translate("Runtime log file path"), tr
 o.datatype    = "string"
 o.rmempty = true
 o.validate=function(self, value)
-if fs.stat(value,"type")=="dir" then
-	if m.message then
-	m.message =m.message.."\nerror!log file is a dir"
-	else
-	m.message ="error!log file is a dir"
+	if not value or value=="" or value=="syslog" then
+		return value
 	end
-	return nil
-end 
-return value
+	if not safe_path(value) then
+		path_err("error!log file is invalid")
+		return nil
+	end
+	if fs.stat(value,"type")=="dir" then
+		path_err("error!log file is a dir")
+		return nil
+	end
+	return value
 end
 
 -- debug
@@ -254,19 +264,19 @@ o1.default     = "/usr/bin/AdGuardHome"
 o1.datatype    = "string"
 o1.optional = false
 o1.validate=function(self, value)
-if fs.stat(value,"type")=="reg" then
-	if m.message then
-	m.message =m.message.."\nerror!backup dir is a file"
-	else
-	m.message ="error!backup dir is a file"
+	if not value or value=="" then return nil end
+	if string.sub(value,-1)=="/" then
+		value = string.sub(value, 1, -2)
 	end
-	return nil
-end
-if string.sub(value,-1)=="/" then
-	return string.sub(value, 1, -2)
-else
+	if not safe_path(value) then
+		path_err("error!backup dir is invalid")
+		return nil
+	end
+	if fs.stat(value,"type")=="reg" then
+		path_err("error!backup dir is a file")
+		return nil
+	end
 	return value
-end
 end
 
 ---- Crontab Settings ----

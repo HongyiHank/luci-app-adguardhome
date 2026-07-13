@@ -61,7 +61,7 @@ local e = ""
 if not fs.access(binpath) then
 	e = "<font color=red>"..translate("No core").."</font>"
 else
-	local tmp = luci.sys.exec(binpath.." --version 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+[.][0-9.]+([Bb]eta)?[0-9.-]*'")
+	local tmp = luci.sys.exec("/usr/share/AdGuardHome/agh_version.sh 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+[.][0-9.]+([Bb]eta)?[0-9.-]*'")
 	local version = (tmp or ""):gsub("%s+$", "")
 	if version == "" then
 		e = "<font color=red>"..translate("Core error").."</font>"

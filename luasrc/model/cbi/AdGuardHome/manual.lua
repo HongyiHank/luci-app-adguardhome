@@ -40,8 +40,8 @@ o.validate=function(self, value)
 		m.message = translate("Core binary not found; configuration not validated or saved")
 		return nil
 	end
-	-- run --check-config and capture its exit code; a crash/Exec-format-error yields no [error] line but nonzero exit
-	sys.call(binpath.." -c /tmp/AdGuardHometmpconfig.yaml --check-config > /tmp/AdGuardHometest.log 2>&1; echo $? > /tmp/AdGuardHometest.rc")
+	-- run --check-config via ACL-allowed wrapper (custom binpath isn't whitelisted); wrapper writes log + rc
+	sys.call("/usr/share/AdGuardHome/agh_check.sh /tmp/AdGuardHometmpconfig.yaml")
 	local log = fs.readfile("/tmp/AdGuardHometest.log") or ""
 	local rc = tonumber((fs.readfile("/tmp/AdGuardHometest.rc") or "1"):match("%d+")) or 1
 	if rc == 0 and not log:match("%[error%]") then

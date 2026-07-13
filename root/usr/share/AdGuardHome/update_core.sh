@@ -29,7 +29,7 @@ check_latest_version(){
 	fi
 	local_ver="$($binpath --version 2>/dev/null | grep -m 1 -oE '[v]{0,1}[0-9]+[.][Bbeta0-9\.\-]+')"
 	echo "Local version: ${local_ver}. Latest version: ${latest_ver}."
-	if [ "${latest_ver}"x != "${local_ver}"x ] || [ "$1" = "force" ]; then
+	if [ "${latest_ver#v}"x != "${local_ver#v}"x ] || [ "$1" = "force" ]; then
 		doupdate_core
 	else
 		echo "You're already using the latest version."

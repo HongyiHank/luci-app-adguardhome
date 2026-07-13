@@ -14,7 +14,8 @@ check_wgetcurl(){
 	which wget && downloader="wget -U 'curl/8.0.0' --no-check-certificate -T 20 -O" && return
 	which curl && downloader="curl -L -k --retry 2 --connect-timeout 20 -o" && return
 	[ -z "$1" ] && opkg update || (echo "Failed to run opkg update" && EXIT 1)
-	[ -z "$1" ] && (opkg remove wget wget-nossl --force-depends ; opkg install wget ; check_wgetcurl 1 ;return)
+	# ponytail: never opkg remove --force-depends; just install the downloader (Makefile already pulls curl when both absent)
+	[ -z "$1" ] && (opkg install wget ; check_wgetcurl 1 ;return)
 	[ "$1" = "1" ] && (opkg install curl ; check_wgetcurl 2 ; return)
 	echo "Error: curl and wget not found" && EXIT 1
 }

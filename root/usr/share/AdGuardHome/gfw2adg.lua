@@ -277,8 +277,11 @@ if mode == "ipset" then
 
     -- Update configpath for ipset_file
     local has_ipset = os.execute("which ipset >/dev/null 2>&1") == 0
-    if #unique_ipset > 0 and has_ipset then
+    if has_ipset then
         os.execute("ipset list gfwlist >/dev/null 2>&1 || ipset create gfwlist hash:ip")
+        os.execute("sh /tmp/doipset.sh >/dev/null 2>&1")
+    end
+    if #unique_ipset > 0 and has_ipset then
         local lines = read_lines(configpath)
         for i, line in ipairs(lines) do
             lines[i] = line:gsub('ipset_file:%s*["\']?.*["\']?', 'ipset_file: ' .. workdir .. '/ipset.txt')

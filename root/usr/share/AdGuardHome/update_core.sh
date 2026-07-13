@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 binpath=$(uci get AdGuardHome.AdGuardHome.binpath)
 if [ -z "$binpath" ]; then
@@ -15,7 +15,7 @@ check_wgetcurl(){
 	which curl && downloader="curl -L -k --retry 2 --connect-timeout 20 -o" && return
 	[ -z "$1" ] && opkg update || (echo "Failed to run opkg update" && EXIT 1)
 	[ -z "$1" ] && (opkg remove wget wget-nossl --force-depends ; opkg install wget ; check_wgetcurl 1 ;return)
-	[ "$1" == "1" ] && (opkg install curl ; check_wgetcurl 2 ; return)
+	[ "$1" = "1" ] && (opkg install curl ; check_wgetcurl 2 ; return)
 	echo "Error: curl and wget not found" && EXIT 1
 }
 
@@ -29,7 +29,7 @@ check_latest_version(){
 	fi
 	local_ver="$($binpath --version 2>/dev/null | grep -m 1 -oE '[v]{0,1}[0-9]+[.][Bbeta0-9\.\-]+')"
 	echo "Local version: ${local_ver}. Latest version: ${latest_ver}."
-	if [ "${latest_ver}"x != "${local_ver}"x ] || [ "$1" == "force" ]; then
+	if [ "${latest_ver}"x != "${local_ver}"x ] || [ "$1" = "force" ]; then
 		doupdate_core
 	else
 		echo "You're already using the latest version."
@@ -127,8 +127,8 @@ doupdate_core(){
 	while read link
 	do
 		[ -n "$link" ] || continue
-		link="${link//\$\{latest_ver\}/$latest_ver}"
-		link="${link//\$\{Arch\}/$Arch}"
+		link=$(echo "$link" | sed "s|\${latest_ver}|${latest_ver}|g")
+		link=$(echo "$link" | sed "s|\${Arch}|${Arch}|g")
 
 		echo "Trying to download from: $link"
 		$downloader /tmp/AdGuardHomeupdate/${link##*/} "$link" 2>&1
@@ -142,7 +142,7 @@ doupdate_core(){
 	done < "/tmp/AdG_links.txt"
 	rm /tmp/AdG_links.txt
 	[ -z "$success" ] && echo "All downloads failed." && EXIT 1
-	if [ "${link##*.}" == "gz" ]; then
+	if [ "${link##*.}" = "gz" ]; then
 		tar -zxf "/tmp/AdGuardHomeupdate/${link##*/}" -C "/tmp/AdGuardHomeupdate/"
 		if [ ! -e "/tmp/AdGuardHomeupdate/AdGuardHome" ]; then
 			echo "Failed to download core."
@@ -164,7 +164,7 @@ doupdate_core(){
 	/etc/init.d/AdGuardHome stop nobackup
 	rm -f "$binpath"
 	mv -f "$downloadbin" "$binpath"
-	if [ "$?" == "1" ]; then
+	if [ "$?" = "1" ]; then
 		echo "Error: mv failed. Maybe not enough space. Please use upx or change bin path to /tmp/AdGuardHome."
 		EXIT 1
 	fi

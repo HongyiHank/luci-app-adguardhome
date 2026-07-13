@@ -14,6 +14,13 @@ EXTRA_HELP="        do_redirect 0 or 1\
 		test_crontab
 		force_reload
 		isrunning"
+# reject paths containing shell metacharacters / traversal; allow [A-Za-z0-9/._-] only
+valid_path() {
+	case "$1" in
+		""|*[!A-Za-z0-9/._-]*|*/..*|*//*) return 1 ;;
+	esac
+	return 0
+}
 start_forward_dnsmasq()
 {
 	addr="127.0.0.1#$AdGuardHome_PORT"
@@ -100,6 +107,7 @@ isrunning(){
 }
 _isrunning(){
 	config_get binpath $CONFIGURATION binpath "/usr/bin/AdGuardHome/AdGuardHome"
+	valid_path "$binpath" || return 2
 	[ ! -f "$binpath" ] && return 2
 	pgrep -f "[/]$binpath" 2>&1 >/dev/null && return 0
 	return 1
@@ -378,6 +386,7 @@ start_service() {
 	config_get username $CONFIGURATION username ""
 	config_get hashpass $CONFIGURATION hashpass ""
 	config_get configpath $CONFIGURATION configpath "/etc/AdGuardHome.yaml"
+	valid_path "$configpath" || { logger -t AdGuardHome "invalid configpath: $configpath"; return 1; }
 	if [ -n "$username" ]; then
 		config_editor "users.name" "$username" "$configpath"
 		uci set $CONFIGURATION.$CONFIGURATION.username=""
@@ -397,6 +406,7 @@ start_service() {
 	fi
 	#what need to do before reload
 	config_get workdir $CONFIGURATION workdir "/usr/bin/AdGuardHome"
+	valid_path "$workdir" || { logger -t AdGuardHome "invalid workdir: $workdir"; return 1; }
 	grep -q "ipset.txt" $configpath 2>/dev/null && ipst=1
 	if [ $ipst -eq 1 ];then
 		ipset list $GFWSET >/dev/null 2>&1 || ipset create $GFWSET hash:ip 2>/dev/null
@@ -442,6 +452,7 @@ start_service() {
 	fi
 
 	config_get binpath $CONFIGURATION binpath "/usr/bin/AdGuardHome/AdGuardHome"
+	valid_path "$binpath" || { logger -t AdGuardHome "invalid binpath: $binpath"; return 1; }
 	mkdir -p ${binpath%/*}
 	if [ ! -f "$binpath" ]; then
 		_do_redirect 0
@@ -450,10 +461,12 @@ start_service() {
 	fi
 
 	config_get httpport $CONFIGURATION httpport 3000
+	case "$httpport" in *[!0-9]*) logger -t AdGuardHome "invalid httpport: $httpport"; return 1;; esac
 	local ADDITIONAL_ARGS=" -c $configpath -w $workdir -p $httpport --no-check-update"
 
 	config_get logfile $CONFIGURATION logfile ""
 	if [ -n "$logfile" ]; then
+		valid_path "$logfile" || { logger -t AdGuardHome "invalid logfile: $logfile"; return 1; }
 		ADDITIONAL_ARGS="$ADDITIONAL_ARGS -l $logfile"
 	fi
 

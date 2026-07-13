@@ -9,6 +9,7 @@ require("table")
 m = Map("AdGuardHome")
 local configpath = uci:get("AdGuardHome","AdGuardHome","configpath")
 local binpath = uci:get("AdGuardHome","AdGuardHome","binpath")
+if not (binpath and binpath:match("^/[%w/._%-]+$")) then binpath="" end
 s = m:section(TypedSection, "AdGuardHome")
 s.anonymous=true
 s.addremove=false

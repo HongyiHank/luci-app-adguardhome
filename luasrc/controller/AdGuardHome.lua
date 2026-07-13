@@ -35,7 +35,7 @@ function act_status()
 	local e={}
 	local binpath=uci:get("AdGuardHome","AdGuardHome","binpath") or ""
 	local running=false
-	if binpath~="" then
+	if binpath~="" and binpath:match("^/[%w/._%-]+$") then
 		running=luci.sys.call("pgrep -f \"[/]"..binpath.."\" >/dev/null")==0
 	end
 	e.running=running

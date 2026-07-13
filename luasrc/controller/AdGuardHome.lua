@@ -96,6 +96,9 @@ function do_dellog()
 		http.write("{}")
 		return
 	end
+	if logfile=="syslog" then
+		logfile="/tmp/AdGuardHome.log"
+	end
 	fs.writefile(logfile,"")
 	http.prepare_content("application/json")
 	http.write("{}")

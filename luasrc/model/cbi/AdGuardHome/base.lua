@@ -328,7 +328,7 @@ o.write=function()
 	luci.sys.exec("sh /usr/share/AdGuardHome/gfwipset2adg.sh del 2>&1")
 	luci.http.redirect(luci.dispatcher.build_url("admin","services","AdGuardHome"))
 end
-o = s:taboption("gfwlist", Value, "gfwupstream", translate("Gfwlist upstream dns server"), translate("Gfwlist domain upstream dns service")..translate(a))
+o = s:taboption("gfwlist", Value, "gfwupstream", translate("Gfwlist upstream dns server"), translate("Gfwlist domain upstream dns service"))
 o.default     = "tcp://208.67.220.220:5353"
 o.datatype    = "string"
 o.optional = false

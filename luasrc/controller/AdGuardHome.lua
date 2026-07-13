@@ -91,6 +91,11 @@ function get_log()
 end
 function do_dellog()
 	local logfile=uci:get("AdGuardHome","AdGuardHome","logfile")
+	if not logfile or logfile=="" then
+		http.prepare_content("application/json")
+		http.write("{}")
+		return
+	end
 	fs.writefile(logfile,"")
 	http.prepare_content("application/json")
 	http.write("{}")

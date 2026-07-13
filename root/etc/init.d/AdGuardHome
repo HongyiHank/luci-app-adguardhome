@@ -468,7 +468,8 @@ start_service() {
 	local ADDITIONAL_ARGS=" -c $configpath -w $workdir -p $httpport --no-check-update"
 
 	config_get logfile $CONFIGURATION logfile ""
-	if [ -n "$logfile" ]; then
+	# syslog: do not pass -l (would create a file named "syslog"); rely on procd stderr → logd
+	if [ -n "$logfile" ] && [ "$logfile" != "syslog" ]; then
 		valid_path "$logfile" || { logger -t AdGuardHome "invalid logfile: $logfile"; return 1; }
 		ADDITIONAL_ARGS="$ADDITIONAL_ARGS -l $logfile"
 	fi

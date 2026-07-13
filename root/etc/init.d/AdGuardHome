@@ -434,7 +434,7 @@ start_service() {
 	mkdir -p ${binpath%/*}
 	if [ ! -f "$binpath" ]; then
 		_do_redirect 0
-		/usr/share/AdGuardHome/update_core.sh 2>&1 >/tmp/AdGuardHome_update.log &
+		/usr/share/AdGuardHome/update_core.sh >/tmp/AdGuardHome_update.log 2>&1 &
 		exit 0
 	fi
 

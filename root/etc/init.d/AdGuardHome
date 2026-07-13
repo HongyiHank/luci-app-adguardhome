@@ -254,26 +254,37 @@ get_filesystem()
 
 config_editor()
 {
-	[ -n "$3" -a -f $3 ] || return
-	awk -v yaml="$1" -v value="$2" -v file="$3" -v ro="$4" '
-	BEGIN{split(yaml,part,"\.");s="";i=1;l=length(part);}
-    {
-        if (match($0,s""part[i]":"))
-        {
-            if (i==l)
-            {
-                split($0,t,": ");
-				if (ro==""){
-				system("sed -i '\''"FNR"c \\"t[1]": "value"'\'' "file);
-				}else{
+	[ -n "$3" -a -f "$3" ] || return
+	if [ "$4" = "1" ]; then
+		awk -v yaml="$1" -v value="$2" -v ro="$4" '
+	BEGIN{split(yaml,part,".");s="";i=1;l=length(part);}
+	{
+		if (match($0,s""part[i]":")) {
+			if (i==l) {
+				split($0,t,": ");
 				print(t[2]);
-				}
 				exit;
-            }
-            s=s"[- ]{2}";
-            i++;
-        }
-    }' $3
+			}
+			s=s"[- ]{2}";
+			i++;
+		}
+	}' "$3"
+	else
+		awk -v yaml="$1" -v value="$2" -v ro="$4" '
+	BEGIN{split(yaml,part,".");s="";i=1;l=length(part);}
+	{
+		if (match($0,s""part[i]":")) {
+			if (i==l) {
+				n=split($0,t,": ");
+				print(t[1]": "value);
+				next;
+			}
+			s=s"[- ]{2}";
+			i++;
+		}
+		print($0);
+	}' "$3" > "$3.tmp" && mv "$3.tmp" "$3"
+	fi
 }
 
 boot_service() {

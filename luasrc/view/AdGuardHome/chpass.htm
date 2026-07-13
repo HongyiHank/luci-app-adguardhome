@@ -25,6 +25,7 @@
 		if (hashpass.value != "") {
 			if (bcrypt.truncates(hashpass.value)) {
 				alert('<%:The password is too long%>');
+				applychpass.disabled = false;
 				return;
 			}
 			hashpass.value = bcrypt.hashSync(hashpass.value, 10);

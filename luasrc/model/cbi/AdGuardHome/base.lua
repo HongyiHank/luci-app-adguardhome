@@ -281,7 +281,7 @@ s:tab("gfwlist", translate("GFWList Settings"))
 -- gfwlist
 local a
 if fs.access(configpath) then
-a=luci.sys.call("grep -m 1 -q programadd "..configpath)
+a=luci.sys.call("grep -m 1 -q programadd \""..configpath.."\"")
 else
 a=1
 end
@@ -305,7 +305,7 @@ o.write=function()
 	luci.http.redirect(luci.dispatcher.build_url("admin","services","AdGuardHome"))
 end
 if fs.access(configpath) then
-a=luci.sys.call("grep -m 1 -q ipset.txt "..configpath)
+a=luci.sys.call("grep -m 1 -q ipset.txt \""..configpath.."\"")
 else
 a=1
 end

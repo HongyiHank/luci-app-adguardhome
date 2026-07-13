@@ -22,25 +22,25 @@ function createAndDownloadFile(fileName, content) {
 function download_log(){
 	const dt = new Date();
 	var timestamp = (dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"_"+dt.getMinutes();
-	createAndDownloadFile("AdGuardHome"+timestamp+".log",lv.innerHTML)
+	createAndDownloadFile("AdGuardHome"+timestamp+".log",lv.textContent)
 }
 function apply_del_log(){
 	XHR.get('<%=url([[admin]], [[services]], [[AdGuardHome]], [[dodellog]])%>',null,function(x, data){
-		lv.innerHTML="";
+		lv.textContent="";
 		logPos = 0;
 	});
 }
 function chlogtime(){
 	if (isutc2local){
-		lv.innerHTML=line_toUTC(lv.innerHTML).join('\n');
+		lv.textContent=line_toUTC(lv.textContent).join('\n');
 		isutc2local=false;
 	}else{
-		lv.innerHTML=line_tolocal(lv.innerHTML).join('\n');
+		lv.textContent=line_tolocal(lv.textContent).join('\n');
 		isutc2local=true;
 	}
 }
 function reverselog(){
-	lv.innerHTML=lv.innerHTML.split('\n').reverse().join('\n')
+	lv.textContent=lv.textContent.split('\n').reverse().join('\n')
 	islogreverse = !islogreverse;
 }
 function p(s) {
@@ -76,15 +76,15 @@ function poll_check(){
 					if (isutc2local) {
 						var lines = line_tolocal(response);
 						if (islogreverse) {
-							lv.innerHTML = lines.reverse().join('\n') + lv.innerHTML;
+							lv.textContent = lines.reverse().join('\n') + lv.textContent;
 						} else {
-							lv.innerHTML += lines.join('\n');
+							lv.textContent += lines.join('\n');
 						}
 					} else {
 						if (islogreverse) {
-							lv.innerHTML = response.split('\n').reverse().join('\n') + lv.innerHTML;
+							lv.textContent = response.split('\n').reverse().join('\n') + lv.textContent;
 						} else {
-							lv.innerHTML += response;
+							lv.textContent += response;
 						}
 					}
 				}
@@ -100,7 +100,7 @@ function poll_check(){
 <%if self.pollcheck then%>
 poll_check();
 <%else%>
-lv.innerHTML="<%:Please add log path in config to enable log%>"
+lv.textContent="<%:Please add log path in config to enable log%>"
 <%end%>
 //]]>
 </script>	

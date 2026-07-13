@@ -91,9 +91,6 @@ o.rmempty=false
 o.validate=function(self, value)
 if value=="" then return nil end
 if fs.stat(value,"type")=="dir" then
-	fs.rmdir(value)
-end
-if fs.stat(value,"type")=="dir" then
 	if (m.message) then
 	m.message =m.message.."\nerror!bin path is a dir"
 	else
@@ -142,9 +139,6 @@ o.rmempty=false
 o.validate=function(self, value)
 if value==nil then return nil end
 if fs.stat(value,"type")=="dir" then
-	fs.rmdir(value)
-end
-if fs.stat(value,"type")=="dir" then
 	if m.message then
 	m.message =m.message.."\nerror!config path is a dir"
 	else
@@ -183,9 +177,6 @@ o = s:taboption("core", Value, "logfile", translate("Runtime log file path"), tr
 o.datatype    = "string"
 o.rmempty = true
 o.validate=function(self, value)
-if fs.stat(value,"type")=="dir" then
-	fs.rmdir(value)
-end
 if fs.stat(value,"type")=="dir" then
 	if m.message then
 	m.message =m.message.."\nerror!log file is a dir"

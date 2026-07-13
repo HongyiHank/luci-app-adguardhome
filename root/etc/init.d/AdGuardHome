@@ -506,7 +506,7 @@ stop_service()
 	_do_redirect 0
 	update_crontab
 	if [ "$1" != "nobackup" ]; then
-		config_get backupfile $CONFIGURATION backupfile "0"
+		config_get backupfile $CONFIGURATION backupfile ""
 		if [ -n "$backupfile" ]; then
 			backup
 		fi

@@ -61,8 +61,8 @@ local e = ""
 if not fs.access(binpath) then
 	e = "<font color=red>"..translate("No core").."</font>"
 else
-	local tmp = luci.sys.exec(binpath.." --version 2>/dev/null | grep -m 1 -E '[0-9]+[.][Bbeta0-9\.\-]+' -o")
-	local version = string.sub(tmp, 1, -2)
+	local tmp = luci.sys.exec(binpath.." --version 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+[.][0-9.]+([Bb]eta)?[0-9.-]*'")
+	local version = (tmp or ""):gsub("%s+$", "")
 	if version == "" then
 		e = "<font color=red>"..translate("Core error").."</font>"
 	else
@@ -213,9 +213,10 @@ o = s:taboption("core", TextValue, "downloadlinks",translate("Download links for
 o.optional = false
 o.rows = 4
 o.wrap = "soft"
-o.default = [[https://static.adguard.com/adguardhome/release/AdGuardHome_linux_${Arch}.tar.gz
-#https://static.adguard.com/adguardhome/beta/AdGuardHome_linux_${Arch}.tar.gz
-https://github.com/AdguardTeam/AdGuardHome/releases/download/${latest_ver}/AdGuardHome_linux_${Arch}.tar.gz]]
+-- GitHub release first: versioned asset, reliable for verification; CDN as fallback
+o.default = [[https://github.com/AdguardTeam/AdGuardHome/releases/download/${latest_ver}/AdGuardHome_linux_${Arch}.tar.gz
+https://static.adguard.com/adguardhome/release/AdGuardHome_linux_${Arch}.tar.gz
+#https://static.adguard.com/adguardhome/beta/AdGuardHome_linux_${Arch}.tar.gz]]
 
 ---- Backup Settings ----
 s:tab("backup", translate("Backup Settings"))

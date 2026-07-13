@@ -27,7 +27,7 @@ check_latest_version(){
 	if [ -z "${latest_ver}" ]; then
 		echo "Failed to check latest version, please try again later." && EXIT 1
 	fi
-	local_ver="$($binpath --version 2>/dev/null | grep -m 1 -oE '[v]{0,1}[0-9]+[.][Bbeta0-9\.\-]+')"
+	local_ver="$($binpath --version 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+\.[0-9.]+([Bb]eta)?[0-9.-]*')"
 	echo "Local version: ${local_ver}. Latest version: ${latest_ver}."
 	if [ "${latest_ver#v}"x != "${local_ver#v}"x ] || [ "$1" = "force" ]; then
 		doupdate_core
@@ -123,42 +123,85 @@ doupdate_core(){
 		echo "No download links configured in UCI"
 		EXIT 1
 	fi
-	echo "$downloadlinks" | grep -v "^#" >/tmp/AdG_links.txt
+	# Drop comments/blank lines; strip CR (Windows-style UCI pastes)
+	echo "$downloadlinks" | tr -d '\r' | grep -v '^[[:space:]]*#' | grep -v '^[[:space:]]*$' >/tmp/AdG_links.txt
+	success=""
+	downloadbin=""
+	got_ver=""
 	while read link
 	do
 		[ -n "$link" ] || continue
-		link=$(echo "$link" | sed "s|\${latest_ver}|${latest_ver}|g")
-		link=$(echo "$link" | sed "s|\${Arch}|${Arch}|g")
+		link=$(echo "$link" | sed "s|\${latest_ver}|${latest_ver}|g; s|\${Arch}|${Arch}|g")
+		fname="${link##*/}"
+		fname="${fname%%\?*}"
 
 		echo "Trying to download from: $link"
-		$downloader /tmp/AdGuardHomeupdate/${link##*/} "$link" 2>&1
-		if [ "$?" != "0" ]; then
+		rm -rf /tmp/AdGuardHomeupdate
+		mkdir -p /tmp/AdGuardHomeupdate
+		$downloader "/tmp/AdGuardHomeupdate/$fname" "$link" 2>&1
+		if [ "$?" != "0" ] || [ ! -s "/tmp/AdGuardHomeupdate/$fname" ]; then
 			echo "Download failed. Trying next link..."
-			rm -f /tmp/AdGuardHomeupdate/${link##*/}
-		else
-			local success="1"
-			break
+			continue
 		fi
+
+		# Reject tiny files (error HTML / incomplete transfer). AGH core is multi-MB.
+		fsize=$(wc -c < "/tmp/AdGuardHomeupdate/$fname" 2>/dev/null | tr -d ' \t')
+		fsize=${fsize:-0}
+		if [ "$fsize" -lt 1000000 ]; then
+			echo "Downloaded file too small (${fsize} bytes), likely not a core archive. Trying next link..."
+			continue
+		fi
+
+		candidate=""
+		case "$fname" in
+			*.tar.gz|*.tgz)
+				if ! tar -ztf "/tmp/AdGuardHomeupdate/$fname" >/dev/null 2>&1; then
+					echo "Not a valid tar.gz archive. Trying next link..."
+					continue
+				fi
+				tar -zxf "/tmp/AdGuardHomeupdate/$fname" -C "/tmp/AdGuardHomeupdate/" 2>/dev/null
+				rm -f "/tmp/AdGuardHomeupdate/$fname"
+				candidate=""
+				for f in /tmp/AdGuardHomeupdate/AdGuardHome/AdGuardHome /tmp/AdGuardHomeupdate/*/AdGuardHome; do
+					if [ -f "$f" ]; then
+						candidate="$f"
+						break
+					fi
+				done
+				;;
+			*)
+				candidate="/tmp/AdGuardHomeupdate/$fname"
+				;;
+		esac
+
+		if [ -z "$candidate" ] || [ ! -f "$candidate" ]; then
+			echo "Extract failed or binary missing. Trying next link..."
+			continue
+		fi
+		chmod 755 "$candidate"
+		# Must actually run on this device and report a version (catches wrong arch / corrupt binary)
+		got_ver="$("$candidate" --version 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+\.[0-9.]+([Bb]eta)?[0-9.-]*' || true)"
+		if [ -z "$got_ver" ]; then
+			echo "Downloaded binary is not a runnable AdGuardHome for this device. Trying next link..."
+			continue
+		fi
+		echo "Download successful. Binary version: $got_ver"
+		downloadbin="$candidate"
+		success="1"
+		break
 	done < "/tmp/AdG_links.txt"
-	rm /tmp/AdG_links.txt
+	rm -f /tmp/AdG_links.txt
 	[ -z "$success" ] && echo "All downloads failed." && EXIT 1
-	if [ "${link##*.}" = "gz" ]; then
-		tar -zxf "/tmp/AdGuardHomeupdate/${link##*/}" -C "/tmp/AdGuardHomeupdate/"
-		if [ ! -e "/tmp/AdGuardHomeupdate/AdGuardHome" ]; then
-			echo "Failed to download core."
-			rm -rf "/tmp/AdGuardHomeupdate" >/dev/null 2>&1
-			EXIT 1
-		fi
-		downloadbin="/tmp/AdGuardHomeupdate/AdGuardHome/AdGuardHome"
-	else
-		downloadbin="/tmp/AdGuardHomeupdate/${link##*/}"
-	fi
-	chmod 755 $downloadbin
-	echo "Download successful."
 	if [ -n "$upxflag" ]; then
 		doupx
 		/tmp/upx-${upx_latest_ver}-${Arch}_linux/upx $upxflag $downloadbin
 		rm -rf /tmp/upx-${upx_latest_ver}-${Arch}_linux
+		# Re-validate after UPX (compression can break some targets)
+		got_ver="$("$downloadbin" --version 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+\.[0-9.]+([Bb]eta)?[0-9.-]*' || true)"
+		if [ -z "$got_ver" ]; then
+			echo "Binary became unusable after UPX compression."
+			EXIT 1
+		fi
 	fi
 	echo "Start copy to ${binpath}"
 	/etc/init.d/AdGuardHome stop nobackup
@@ -168,9 +211,10 @@ doupdate_core(){
 		echo "Error: mv failed. Maybe not enough space. Please use upx or change bin path to /tmp/AdGuardHome."
 		EXIT 1
 	fi
+	chmod 755 "$binpath"
 	/etc/init.d/AdGuardHome start
 	rm -rf "/tmp/AdGuardHomeupdate" >/dev/null 2>&1
-	echo "Core updated successfully. New version: ${latest_ver}."
+	echo "Core updated successfully. New version: ${got_ver}."
 	EXIT 0
 }
 

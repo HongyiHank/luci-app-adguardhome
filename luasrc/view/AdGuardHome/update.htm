@@ -69,7 +69,7 @@ function poll_check(){
 					if (data.status === 'succeeded') {
 						updatebtn.disabled = true;
 						updatebtn.value    = '<%:Updated%>';
-					} else if (data.status === 'failed') {
+					} else {
 						updatebtn.disabled = false;
 						updatebtn.value    = '<%:Update core version%>';
 					}

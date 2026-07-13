@@ -120,13 +120,16 @@ function check_update()
 	end
 
 	local running = luci.sys.call("pgrep -f /usr/share/AdGuardHome/update_core.sh >/dev/null") == 0
-	local status
+	local status = "idle"
 	if running then
 		status = "running"
 	elseif fs.access("/var/run/AdG_update_error") then
 		status = "failed"
-	else
-		status = "succeeded"
+	elseif fs.access("/tmp/AdGuardHome_update.log") then
+		local log = fs.readfile("/tmp/AdGuardHome_update.log") or ""
+		if log:find("successfully") then
+			status = "succeeded"
+		end
 	end
 
 	http.prepare_content("application/json")

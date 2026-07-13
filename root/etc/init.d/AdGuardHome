@@ -435,7 +435,7 @@ start_service() {
 	if [ ! -f "$binpath" ]; then
 		_do_redirect 0
 		/usr/share/AdGuardHome/update_core.sh >/tmp/AdGuardHome_update.log 2>&1 &
-		exit 0
+		return 0
 	fi
 
 	config_get httpport $CONFIGURATION httpport 3000

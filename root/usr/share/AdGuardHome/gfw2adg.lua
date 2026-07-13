@@ -72,6 +72,7 @@ end
 
 local configpath = uci_get("configpath")
 local gfwupstream = uci_get("gfwupstream") or "tcp://208.67.220.220:5353"
+local workdir = uci_get("workdir") or "/usr/bin/AdGuardHome"
 
 if not configpath or not file_exists(configpath) then
     print("Error: Configuration path not found.")
@@ -272,7 +273,7 @@ if mode == "ipset" then
     for i, v in ipairs(ipset_list) do
         if v ~= ipset_list[i-1] then table.insert(unique_ipset, v) end
     end
-    write_to_file("/usr/bin/AdGuardHome/ipset.txt", unique_ipset)
+    write_to_file(workdir .. "/ipset.txt", unique_ipset)
 
     -- Update configpath for ipset_file
     local has_ipset = os.execute("which ipset >/dev/null 2>&1") == 0
@@ -280,7 +281,7 @@ if mode == "ipset" then
         os.execute("ipset list gfwlist >/dev/null 2>&1 || ipset create gfwlist hash:ip")
         local lines = read_lines(configpath)
         for i, line in ipairs(lines) do
-            lines[i] = line:gsub('ipset_file:%s*["\']?.*["\']?', 'ipset_file: /usr/bin/AdGuardHome/ipset.txt')
+            lines[i] = line:gsub('ipset_file:%s*["\']?.*["\']?', 'ipset_file: ' .. workdir .. '/ipset.txt')
         end
         write_to_file(configpath, lines)
     end

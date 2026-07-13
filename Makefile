@@ -20,6 +20,7 @@ endef
 
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
+if [ -z "$${IPKG_INSTROOT}" ]; then
 	uci -q batch <<-EOF >/dev/null 2>&1
 		delete ucitrack.@AdGuardHome[-1]
 		add ucitrack AdGuardHome
@@ -27,18 +28,21 @@ define Package/$(PKG_NAME)/preinst
 		commit ucitrack
 	EOF
 	rm -f /tmp/luci-indexcache
+fi
 exit 0
 endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
+if [ -z "$${IPKG_INSTROOT}" ]; then
 	/etc/init.d/AdGuardHome enable >/dev/null 2>&1
-	enable=$(uci get AdGuardHome.AdGuardHome.enabled 2>/dev/null)
-	if [ "$enable" == "1" ]; then
+	enable=$$(uci get AdGuardHome.AdGuardHome.enabled 2>/dev/null)
+	if [ "$$enable" = "1" ]; then
 		/etc/init.d/AdGuardHome reload >/dev/null 2>&1
 	fi
 	rm -f /tmp/luci-indexcache
 	rm -f /tmp/luci-modulecache/*
+fi
 exit 0
 endef
 

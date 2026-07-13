@@ -1,5 +1,5 @@
 # LuCI App AdGuard Home
-
+<mark>This project is for testing the programming capabilities of Grok 4.5 and should not be used in a production environment.</mark><br>
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/stevenjoezhang/luci-app-adguardhome/build_release.yml?style=for-the-badge&logo=GitHub)](https://github.com/stevenjoezhang/luci-app-adguardhome/actions/workflows/build_release.yml)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/stevenjoezhang/luci-app-adguardhome?style=for-the-badge)](https://github.com/stevenjoezhang/luci-app-adguardhome/releases)
 

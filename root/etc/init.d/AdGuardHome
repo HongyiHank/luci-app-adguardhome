@@ -508,6 +508,9 @@ start_service() {
 reload_service()
 {
 	echo "AdGuardHome reloading"
+	# Full restart so procd instances (main/waitnet/waitconfig) are replaced;
+	# nobackup avoids workdir backup on every UCI apply / reload.
+	stop nobackup
 	start
 }
 

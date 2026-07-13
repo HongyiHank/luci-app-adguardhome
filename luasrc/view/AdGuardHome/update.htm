@@ -83,7 +83,7 @@ function poll_check(){
 		);
 	})();
 }
-<% if sys.call("pgrep -f /usr/share/AdGuardHome/update_core.sh >/dev/null") == 0 then %>
+<% if sys.call("pgrep -f \"[/]usr/share/AdGuardHome/update_core.sh\" >/dev/null") == 0 then %>
 	updatebtn.disabled = true;
 	updatebtn.value    = '<%:Updating...%>';
 	forceupdatebtn.style.display="inline"

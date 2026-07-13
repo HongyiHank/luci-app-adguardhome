@@ -36,7 +36,7 @@ function act_status()
 	local binpath=uci:get("AdGuardHome","AdGuardHome","binpath") or ""
 	local running=false
 	if binpath~="" then
-		running=luci.sys.call("pgrep -f \""..binpath.."\" >/dev/null")==0
+		running=luci.sys.call("pgrep -f \"[/]"..binpath.."\" >/dev/null")==0
 	end
 	e.running=running
 	e.redirect=(fs.readfile("/var/run/AdG_redir")=="1")
@@ -50,9 +50,9 @@ function do_update()
 	else
 		arg=""
 	end
-	if luci.sys.call("pgrep -f /usr/share/AdGuardHome/update_core.sh >/dev/null") == 0 then
+	if luci.sys.call("pgrep -f \"[/]usr/share/AdGuardHome/update_core.sh\" >/dev/null") == 0 then
 		if arg=="force" then
-			luci.sys.exec("kill $(pgrep -f /usr/share/AdGuardHome/update_core.sh) ; sh /usr/share/AdGuardHome/update_core.sh "..arg.." >/tmp/AdGuardHome_update.log 2>&1 &")
+			luci.sys.exec("kill $(pgrep -f \"[/]usr/share/AdGuardHome/update_core.sh\") ; sh /usr/share/AdGuardHome/update_core.sh "..arg.." >/tmp/AdGuardHome_update.log 2>&1 &")
 		end
 	else
 		luci.sys.exec("sh /usr/share/AdGuardHome/update_core.sh "..arg.." >/tmp/AdGuardHome_update.log 2>&1 &")
@@ -119,7 +119,7 @@ function check_update()
 		end
 	end
 
-	local running = luci.sys.call("pgrep -f /usr/share/AdGuardHome/update_core.sh >/dev/null") == 0
+	local running = luci.sys.call("pgrep -f \"[/]usr/share/AdGuardHome/update_core.sh\" >/dev/null") == 0
 	local status = "idle"
 	if running then
 		status = "running"

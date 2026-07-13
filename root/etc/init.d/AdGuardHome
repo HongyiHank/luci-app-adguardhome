@@ -101,7 +101,7 @@ isrunning(){
 _isrunning(){
 	config_get binpath $CONFIGURATION binpath "/usr/bin/AdGuardHome/AdGuardHome"
 	[ ! -f "$binpath" ] && return 2
-	pgrep -f "$binpath" 2>&1 >/dev/null && return 0
+	pgrep -f "[/]$binpath" 2>&1 >/dev/null && return 0
 	return 1
 }
 force_reload(){
@@ -486,7 +486,7 @@ start_service() {
 		fi
 	fi
 	echo "AdGuardHome service enabled"
-	(sleep 10 && [ -z "$(pgrep -f "$binpath")" ] && logger "AdGuardHome" "no process in 10s cancel redirect" && _do_redirect 0 )&
+	(sleep 10 && [ -z "$(pgrep -f "[/]$binpath")" ] && logger "AdGuardHome" "no process in 10s cancel redirect" && _do_redirect 0 )&
 }
 reload_service()
 {

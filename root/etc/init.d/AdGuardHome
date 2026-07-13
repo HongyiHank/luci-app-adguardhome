@@ -195,12 +195,13 @@ _do_redirect()
 			clear_firewall
 		fi
 	fi
-	uci delete AdGuardHome.@AdGuardHome[0].old_redirect 2>/dev/null
-	uci delete AdGuardHome.@AdGuardHome[0].old_port 2>/dev/null
-	uci delete AdGuardHome.@AdGuardHome[0].old_enabled 2>/dev/null
-	uci add_list AdGuardHome.@AdGuardHome[0].old_redirect="$redirect" 2>/dev/null
-	uci add_list AdGuardHome.@AdGuardHome[0].old_port="$AdGuardHome_PORT" 2>/dev/null
-	uci add_list AdGuardHome.@AdGuardHome[0].old_enabled="$enabled" 2>/dev/null
+	uci delete AdGuardHome.AdGuardHome.old_redirect 2>/dev/null
+	uci delete AdGuardHome.AdGuardHome.old_port 2>/dev/null
+	uci delete AdGuardHome.AdGuardHome.old_enabled 2>/dev/null
+	# ponytail: scalars stored via set, not add_list (list would stack on delete failure and break cleanup comparison)
+	uci set AdGuardHome.AdGuardHome.old_redirect="$redirect" 2>/dev/null
+	uci set AdGuardHome.AdGuardHome.old_port="$AdGuardHome_PORT" 2>/dev/null
+	uci set AdGuardHome.AdGuardHome.old_enabled="$enabled" 2>/dev/null
 	uci commit AdGuardHome
 
 	if [ "$enabled" == "0" ] || [ "$AdGuardHome_PORT" == "0" ]; then

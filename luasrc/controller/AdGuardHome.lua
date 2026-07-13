@@ -2,6 +2,10 @@ module("luci.controller.AdGuardHome",package.seeall)
 local fs=require"nixio.fs"
 local http=require"luci.http"
 local uci=require"luci.model.uci".cursor()
+-- allow absolute paths with [A-Za-z0-9/._-] only (same as init.d valid_path / CBI safe_path)
+local function safe_path(p)
+	return p and p:match("^/[%w/._%-]+$") ~= nil
+end
 function index()
 entry({"admin", "services", "AdGuardHome"},alias("admin", "services", "AdGuardHome", "base"),_("AdGuard Home"), 10).dependent = true
 entry({"admin","services","AdGuardHome","base"},cbi("AdGuardHome/base"),_("Plugin Settings"),1).leaf = true
@@ -63,15 +67,18 @@ end
 function get_log()
 	http.prepare_content("application/json")
 	local logfile=uci:get("AdGuardHome","AdGuardHome","logfile")
-	if (logfile==nil) then
+	if not logfile or logfile=="" then
 		http.write_json({ pos = 0, content = "" })
 		return
-	elseif (logfile=="syslog") then
+	elseif logfile=="syslog" then
 		if not fs.access("/var/run/AdG_syslog") then
 			luci.sys.exec("(/usr/share/AdGuardHome/getsyslog.sh &); sleep 1;")
 		end
 		logfile="/tmp/AdGuardHome.log"
 		fs.writefile("/var/run/AdG_syslog","1")
+	elseif not safe_path(logfile) then
+		http.write_json({ pos = 0, content = "" })
+		return
 	elseif not fs.access(logfile) then
 		http.write_json({ pos = 0, content = "" })
 		return
@@ -98,6 +105,10 @@ function do_dellog()
 	end
 	if logfile=="syslog" then
 		logfile="/tmp/AdGuardHome.log"
+	elseif not safe_path(logfile) then
+		http.prepare_content("application/json")
+		http.write("{}")
+		return
 	end
 	fs.writefile(logfile,"")
 	http.prepare_content("application/json")

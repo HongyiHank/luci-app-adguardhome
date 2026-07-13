@@ -7,12 +7,24 @@ binpath="/tmp/AdGuardHome/AdGuardHome"
 fi
 mkdir -p ${binpath%/*}
 upxflag=$(uci get AdGuardHome.AdGuardHome.upxflag 2>/dev/null)
+# ponytail: insecure=1 re-enables certificate-less transport; default verifies TLS (needs ca-bundle)
+insecure=$(uci -q get AdGuardHome.AdGuardHome.insecure)
+
+# Set User-Agent as curl 8.0.0, otherwise GitHub may return JSON with no line-breaks.
+mkdl(){
+	if [ "$insecure" = "1" ]; then
+		which wget >/dev/null 2>&1 && downloader="wget -U 'curl/8.0.0' --no-check-certificate -T 20 -O" && return
+		which curl >/dev/null 2>&1 && downloader="curl -L -k --retry 2 --connect-timeout 20 -o" && return
+	else
+		which wget >/dev/null 2>&1 && downloader="wget -U 'curl/8.0.0' -T 20 -O" && return
+		which curl >/dev/null 2>&1 && downloader="curl -L --retry 2 --connect-timeout 20 -o" && return
+	fi
+}
 
 check_wgetcurl(){
 	echo "Checking for wget or curl..."
-	# Set User-Agent as curl 8.0.0, otherwise GitHub may return JSON with no line-breaks
-	which wget && downloader="wget -U 'curl/8.0.0' --no-check-certificate -T 20 -O" && return
-	which curl && downloader="curl -L -k --retry 2 --connect-timeout 20 -o" && return
+	mkdl
+	[ -n "$downloader" ] && return
 	[ -z "$1" ] && opkg update || (echo "Failed to run opkg update" && EXIT 1)
 	# ponytail: never opkg remove --force-depends; just install the downloader (Makefile already pulls curl when both absent)
 	[ -z "$1" ] && (opkg install wget ; check_wgetcurl 1 ;return)
@@ -133,6 +145,11 @@ doupdate_core(){
 	do
 		[ -n "$link" ] || continue
 		link=$(echo "$link" | sed "s|\${latest_ver}|${latest_ver}|g; s|\${Arch}|${Arch}|g")
+		# ponytail: refuse non-https links to limit MITM surface (custom URL is by-design, but must be TLS)
+		case "$link" in
+			https://*) ;;
+			*) echo "Refusing non-https download link: $link"; continue ;;
+		esac
 		fname="${link##*/}"
 		fname="${fname%%\?*}"
 

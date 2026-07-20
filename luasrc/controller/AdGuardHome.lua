@@ -39,8 +39,10 @@ function act_status()
 	-- Bracket trick: match /path but avoid self-match. Path already starts with /,
 	-- so use [/] + path without leading slash (NOT "[/]"..binpath which becomes //path).
 	-- Trailing space prevents false matches on similar paths (e.g. AdGuardHome_extra).
+	-- Escape dots since . is a regex wildcard; allowed in path chars by valid_path.
 	if binpath~="" and binpath:match("^/[%w/._%-]+$") then
-		running=luci.sys.call("pgrep -f \"[/]"..binpath:sub(2).." \" >/dev/null")==0
+		local esc = binpath:sub(2):gsub("%.", "\\.")
+		running=luci.sys.call("pgrep -f \"[/]"..esc.." \" >/dev/null")==0
 	end
 	e.running=running
 	e.redirect=(fs.readfile("/var/run/AdG_redir")=="1")

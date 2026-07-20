@@ -98,6 +98,10 @@ service_triggers() {
 	procd_add_reload_trigger "$CONFIGURATION"
 	[ "$(uci get AdGuardHome.@AdGuardHome[0].redirect 2>/dev/null)" == "redirect" ] && procd_add_reload_trigger firewall
 }
+# Escape regex metacharacters in path for pgrep -f
+_pgrep_pat() {
+	echo "$1" | sed 's/\./\\./g'
+}
 isrunning(){
 	config_load "${CONFIGURATION}"
 	_isrunning
@@ -110,7 +114,9 @@ _isrunning(){
 	valid_path "$binpath" || return 2
 	[ ! -f "$binpath" ] && return 2
 	# [/]${binpath#/} → match /path, not //path (binpath already has leading /)
-	pgrep -f "[/]${binpath#/}" 2>&1 >/dev/null && return 0
+	# Escape dots since . is a regex wildcard in pgrep -f
+	local pat=$(_pgrep_pat "${binpath#/}")
+	pgrep -f "[/]${pat}" 2>&1 >/dev/null && return 0
 	return 1
 }
 force_reload(){
@@ -523,7 +529,8 @@ start_service() {
 	# Track watchdog PID so stop_service can clean it up
 	# Remove stale PID first in case of crash without proper stop
 	rm -f /var/run/AdG_redir_wdog
-	(sleep 10 && [ -z "$(pgrep -f "[/]${binpath#/}")" ] && logger "AdGuardHome" "no process in 10s cancel redirect" && _do_redirect 0 )&
+	local wd_pat=$(_pgrep_pat "${binpath#/}")
+	(sleep 10 && [ -z "$(pgrep -f "[/]${wd_pat}")" ] && logger "AdGuardHome" "no process in 10s cancel redirect" && _do_redirect 0 )&
 	echo $! > /var/run/AdG_redir_wdog 2>/dev/null
 }
 reload_service()

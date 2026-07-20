@@ -149,6 +149,10 @@ function check_update()
 		local log = fs.readfile("/tmp/AdGuardHome_update.log") or ""
 		if log:find("successfully") then
 			status = "succeeded"
+		else
+			-- Log file exists but no success marker and no error flag
+			-- means the process ended abnormally (e.g. SIGKILL, crash)
+			status = "failed"
 		end
 	end
 

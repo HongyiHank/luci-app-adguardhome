@@ -242,14 +242,12 @@ o.default = 0
 o.optional = false
 
 -- downloadpath
+-- ponytail: default lives in /etc/config/AdGuardHome (installed by package),
+-- so the TextValue shows it via UCI.  No CBI default needed — one source of truth.
 o = s:taboption("core", TextValue, "downloadlinks",translate("Download links for update"))
 o.optional = false
 o.rows = 4
 o.wrap = "soft"
--- GitHub release first: versioned asset, reliable for verification; CDN as fallback
-o.default = [[https://github.com/AdguardTeam/AdGuardHome/releases/download/${latest_ver}/AdGuardHome_linux_${Arch}.tar.gz
-https://static.adguard.com/adguardhome/release/AdGuardHome_linux_${Arch}.tar.gz
-#https://static.adguard.com/adguardhome/beta/AdGuardHome_linux_${Arch}.tar.gz]]
 
 ---- Backup Settings ----
 s:tab("backup", translate("Backup Settings"))

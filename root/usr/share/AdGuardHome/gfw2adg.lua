@@ -232,6 +232,12 @@ if gfw_file then
                 end
             end
 
+            -- Strip AdBlock format modifiers (^) from domain tail
+            if domain then
+                local pos = domain:find("%%")
+                if pos then domain = domain:sub(1, pos - 1) end
+            end
+
             if domain and domain:sub(1,1) == "." then domain = domain:sub(2) end
 
             -- Validate domain format

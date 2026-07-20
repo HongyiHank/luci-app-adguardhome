@@ -597,7 +597,6 @@ crontab_editor(){
 	#output:cronreload:if >1 please /etc/init.d/cron restart manual
 	local testline reload
 	local line="$(grep "$findstr" $CRON_FILE)"
-	[ -n "$replace" ] && [ -n "$line" ] && eval testline="\${line//$replace}" && [ "$testline" != "$line" ] && line="$testline" && reload="1" && replace=""
 	if [ "${line:0:1}" != "#" ]; then
 		if [ $cronenable -eq 1 ]; then
 			[ -z "$line" ] && line="$default" && reload="1"

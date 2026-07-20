@@ -573,9 +573,11 @@ stop_service()
 	config_load "${CONFIGURATION}"
 	_do_redirect 0
 	update_crontab
-	# Kill orphan redirect watchdog if still running
+	# Kill orphan background processes
 	kill $(cat /var/run/AdG_redir_wdog 2>/dev/null) 2>/dev/null
 	rm -f /var/run/AdG_redir_wdog
+	kill $(pgrep -f "[/]usr/share/AdGuardHome/getsyslog.sh" 2>/dev/null) 2>/dev/null
+	rm -f /var/run/AdG_syslog /tmp/AdGuardHome.log
 	if [ "$1" != "nobackup" ]; then
 		config_get backupfile $CONFIGURATION backupfile ""
 		if [ -n "$backupfile" ]; then

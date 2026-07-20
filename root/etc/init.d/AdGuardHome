@@ -597,12 +597,11 @@ crontab_editor(){
 	#cronenable=
 	#replace="${last//\//\\/}/${now//\//\\/}"
 	#output:cronreload:if >1 please /etc/init.d/cron restart manual
-	local testline reload
 	local line="$(grep "$findstr" $CRON_FILE)"
 	if [ "${line:0:1}" != "#" ]; then
 		if [ $cronenable -eq 1 ]; then
-			[ -z "$line" ] && line="$default" && reload="1"
-			if [ -n "$reload" ]; then
+			if [ -z "$line" ]; then
+				line="$default"
 				sed -i "\,$findstr,d" $CRON_FILE
 				echo "$line" >> $CRON_FILE
 				cronreload=$((cronreload+1))
@@ -612,14 +611,10 @@ crontab_editor(){
 			echo "#$line" >> $CRON_FILE
 			cronreload=$((cronreload+1))
 		fi
-	else
-		if [ $cronenable -eq 1 ]; then
-			sed -i "\,$findstr,d" $CRON_FILE
-			echo "${line:1}" >> $CRON_FILE
-			cronreload=$((cronreload+1))
-		elif [ -z "$reload" ]; then
-			sed -i "\,$findstr,d" $CRON_FILE
-			echo "$line" >> $CRON_FILE
-		fi
+	elif [ $cronenable -eq 1 ]; then
+		# Uncomment existing entry
+		sed -i "\,$findstr,d" $CRON_FILE
+		echo "${line:1}" >> $CRON_FILE
+		cronreload=$((cronreload+1))
 	fi
 }

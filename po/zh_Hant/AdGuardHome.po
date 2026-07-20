@@ -295,3 +295,44 @@ msgstr "設定驗證失敗"
 
 msgid "Browser management username"
 msgstr "網頁管理使用者名稱"
+
+# manual.lua
+msgid "Invalid config path"
+msgstr "無效的設定檔路徑"
+
+msgid "Core binary not found; configuration not validated or saved"
+msgstr "找不到核心執行檔，設定無法驗證或儲存"
+
+msgid "Failed to save config file (disk full or permission error)"
+msgstr "儲存設定檔失敗（磁碟已滿或權限錯誤）"
+
+# base.lua validation errors
+msgid "error!bin path is invalid"
+msgstr "錯誤！執行檔路徑無效"
+
+msgid "error!bin path is a dir"
+msgstr "錯誤！執行檔路徑是一個目錄"
+
+msgid "error!config path is invalid"
+msgstr "錯誤！設定檔路徑無效"
+
+msgid "error!config path is a dir"
+msgstr "錯誤！設定檔路徑是一個目錄"
+
+msgid "error!work dir is invalid"
+msgstr "錯誤！工作目錄無效"
+
+msgid "error!work dir is a file"
+msgstr "錯誤！工作目錄是一個檔案"
+
+msgid "error!log file is invalid"
+msgstr "錯誤！日誌檔案路徑無效"
+
+msgid "error!log file is a dir"
+msgstr "錯誤！日誌檔案路徑是一個目錄"
+
+msgid "error!backup dir is invalid"
+msgstr "錯誤！備份目錄無效"
+
+msgid "error!backup dir is a file"
+msgstr "錯誤！備份目錄是一個檔案"

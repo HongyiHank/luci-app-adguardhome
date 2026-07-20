@@ -3,9 +3,6 @@ local fs = require "nixio.fs"
 local uci=require"luci.model.uci".cursor()
 local sys=require"luci.sys"
 local safe_path=require"luci.model.cbi.AdGuardHome.utils".safe_path
-require("string")
-require("io")
-require("table")
 
 m = Map("AdGuardHome")
 local configpath = uci:get("AdGuardHome","AdGuardHome","configpath")

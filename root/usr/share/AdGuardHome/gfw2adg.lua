@@ -125,8 +125,9 @@ end
 -- --- Download and Process GFWList ---
 
 print("Downloading gfwlist...")
--- Fetch base64 content and decode in pure Lua (avoid external `base64` on OpenWRT)
-local raw_b64 = exec("wget https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt -O- 2>/dev/null")
+-- Fetch base64 content — try wget first, fall back to curl
+-- (both 2>/dev/null to suppress stderr, the empty-string check below handles failure)
+local raw_b64 = exec("wget -q https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt -O- 2>/dev/null || curl -sL https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt 2>/dev/null")
 if not raw_b64 or raw_b64 == "" then
     print("Error: failed to download gfwlist or empty response")
     os.exit(1)

@@ -113,6 +113,8 @@ function do_dellog()
 		return
 	end
 	if logfile=="syslog" then
+		-- ponytail: kill the background syslog watcher so clearing the temp log actually sticks
+		luci.sys.exec("kill $(pgrep -f \"[/]usr/share/AdGuardHome/getsyslog.sh\") 2>/dev/null; rm -f /var/run/AdG_syslog")
 		logfile="/tmp/AdGuardHome.log"
 	elseif not safe_path(logfile) then
 		http.prepare_content("application/json")

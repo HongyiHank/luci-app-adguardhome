@@ -77,8 +77,25 @@ local e = ""
 if not fs.access(binpath) then
 	e = "<font color=red>"..translate("No core").."</font>"
 else
-	local tmp = luci.sys.exec("/usr/share/AdGuardHome/agh_version.sh 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+[.][0-9.]+([Bb]eta)?[0-9.-]*'")
-	local version = (tmp or ""):gsub("%s+$", "")
+	local version = ""
+	local version_cache = "/tmp/AdG_version.cache"
+	local version_mtime = "/tmp/AdG_version.cache.mtime"
+	-- Reuse cached version if binary mtime hasn't changed
+	local bin_mtime = fs.stat(binpath, "modification")
+	if bin_mtime then
+		local cached_mtime = fs.readfile(version_mtime) or ""
+		if cached_mtime == tostring(bin_mtime) then
+			version = fs.readfile(version_cache) or ""
+		end
+	end
+	if version == "" then
+		local tmp = luci.sys.exec("/usr/share/AdGuardHome/agh_version.sh 2>/dev/null | grep -m 1 -oE '[v]?[0-9]+[.][0-9.]+([Bb]eta)?[0-9.-]*'")
+		version = (tmp or ""):gsub("%s+$", "")
+		if version ~= "" and bin_mtime then
+			fs.writefile(version_cache, version)
+			fs.writefile(version_mtime, tostring(bin_mtime))
+		end
+	end
 	if version == "" then
 		e = "<font color=red>"..translate("Core error").."</font>"
 	else

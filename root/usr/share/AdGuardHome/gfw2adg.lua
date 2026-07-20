@@ -151,17 +151,14 @@ if not decoded or decoded == "" then
     print("Error: base64 decode failed")
     os.exit(1)
 end
-write_to_file("/tmp/gfwlist.txt", decoded)
-
-local gfw_file = io.open("/tmp/gfwlist.txt", "r")
 local ad_list_results = {}
 local ipset_sh_results = {}
+local last_domain = ""
+local first = true
 
-if gfw_file then
-    gfw_file:read("*l") -- Skip the first line
-    local last_domain = ""
-
-    for line in gfw_file:lines() do
+for line in decoded:gmatch("[^\r\n]+") do
+    if first then first = false
+    else
         local domain = ""
         local white = false
 
@@ -216,7 +213,6 @@ if gfw_file then
             end
         end
     end
-    gfw_file:close()
 end
 
 table.insert(ad_list_results, "    - '[/programaddend/]#'")
@@ -294,4 +290,4 @@ else
 end
 
 -- --- Cleanup ---
-os.execute("rm -f /tmp/gfwlist.txt /tmp/adguard.list /tmp/doipset.sh")
+os.execute("rm -f /tmp/adguard.list /tmp/doipset.sh")

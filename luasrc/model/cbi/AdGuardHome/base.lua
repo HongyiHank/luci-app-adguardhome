@@ -1,6 +1,4 @@
 require("luci.sys")
-require("luci.util")
-require("io")
 local m,s,o,o1
 local fs=require"nixio.fs"
 local uci=require"luci.model.uci".cursor()

@@ -542,12 +542,18 @@ reload_service()
 	start
 }
 
+# Return the last (alphabetically) file matching glob $1/*
+_last_glob() {
+	local d="$1" p="$2" f r=
+	for f in "$d/"$p; do [ -e "$f" ] && r="${f##*/}"; done
+	echo "$r"
+}
 del_querylog(){
 	local workdir="${1:-}"
 	local backupwdpath="${2:-}"
 	[ -z "$workdir" ] || [ -z "$backupwdpath" ] && return 1
-	local btarget=$(ls "$backupwdpath/data" 2>/dev/null | grep -F "querylog.json" | sort -r | head -n 1)
-	local wtarget=$(ls "$workdir/data" 2>/dev/null | grep -F "querylog.json" | sort -r | head -n 1)
+	local btarget=$(_last_glob "$backupwdpath/data" "*querylog.json*")
+	local wtarget=$(_last_glob "$workdir/data" "*querylog.json*")
 	if [ "$btarget"x == "$wtarget"x ]; then
 		[ -z "$btarget" ] && return 1
 		rm -f $workdir/data/$wtarget

@@ -20,6 +20,27 @@ if not safe_path(configpath) then configpath="" end
 local binpath=uci:get("AdGuardHome","AdGuardHome","binpath") or "/usr/bin/AdGuardHome/AdGuardHome"
 if not safe_path(binpath) then binpath="" end
 local httpport=uci:get("AdGuardHome","AdGuardHome","httpport") or "3000"
+-- Ensure a section of type "AdGuardHome" exists (prevents "no values in this section" after save)
+local has_section = false
+uci:foreach("AdGuardHome", "AdGuardHome", function(s) has_section = true end)
+if not has_section then
+	uci:section("AdGuardHome", "AdGuardHome", "AdGuardHome", {
+		enabled = "0",
+		httpport = "3000",
+		redirect = "none",
+		configpath = "/etc/AdGuardHome.yaml",
+		workdir = "/usr/bin/AdGuardHome",
+		logfile = "/tmp/AdGuardHome.log",
+		verbose = "0",
+		binpath = "/usr/bin/AdGuardHome/AdGuardHome",
+		upxflag = "",
+		downloadlinks = "https://github.com/AdguardTeam/AdGuardHome/releases/download/${latest_ver}/AdGuardHome_linux_${Arch}.tar.gz\nhttps://static.adguard.com/adguardhome/release/AdGuardHome_linux_${Arch}.tar.gz\n#https://static.adguard.com/adguardhome/beta/AdGuardHome_linux_${Arch}.tar.gz"
+	})
+	uci:commit("AdGuardHome")
+	configpath = uci:get("AdGuardHome","AdGuardHome","configpath") or "/etc/AdGuardHome.yaml"
+	binpath = uci:get("AdGuardHome","AdGuardHome","binpath") or "/usr/bin/AdGuardHome/AdGuardHome"
+	httpport = uci:get("AdGuardHome","AdGuardHome","httpport") or "3000"
+end
 m = Map("AdGuardHome", "AdGuard Home")
 m.description = translate("A powerful LuCI interface for managing AdGuard Home - a DNS-based ad and tracker blocker that protects all devices on your network").."<br/>"..translate("<a href=\"https://github.com/stevenjoezhang/luci-app-adguardhome\" target=\"_blank\">⭐ Star on GitHub</a>")
 m:section(SimpleSection).template  = "AdGuardHome/status"

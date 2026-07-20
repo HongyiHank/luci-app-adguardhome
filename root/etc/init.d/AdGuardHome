@@ -96,7 +96,7 @@ clear_firewall()
 
 service_triggers() {
 	procd_add_reload_trigger "$CONFIGURATION"
-	[ "$(uci get AdGuardHome.AdGuardHome.redirect)" == "redirect" ] && procd_add_reload_trigger firewall
+	[ "$(uci get AdGuardHome.@AdGuardHome[0].redirect 2>/dev/null)" == "redirect" ] && procd_add_reload_trigger firewall
 }
 isrunning(){
 	config_load "${CONFIGURATION}"
@@ -162,11 +162,18 @@ do_redirect()
 	config_load "${CONFIGURATION}"
 	_do_redirect $1
 }
+# Find the first section name of type "AdGuardHome" (CBI's anonymous TypedSection uses @AdGuardHome[0])
+_find_ag_section() {
+	[ -z "$_AG_SEC" ] && _AG_SEC="$1"
+}
 _do_redirect()
 {
-	local section="$CONFIGURATION"
+	local section=""
 	enabled=$1
-	config_get configpath $CONFIGURATION configpath "/etc/AdGuardHome.yaml"
+	_AG_SEC=""
+	config_foreach _find_ag_section AdGuardHome
+	section="${_AG_SEC:-$CONFIGURATION}"
+	config_get configpath "$section" configpath "/etc/AdGuardHome.yaml"
 	AdGuardHome_PORT=$(config_editor "dns.port" "" "$configpath" "1")
 	if [ -z "$AdGuardHome_PORT" ]; then
 		AdGuardHome_PORT="0"
@@ -195,13 +202,14 @@ _do_redirect()
 			clear_firewall
 		fi
 	fi
-	uci delete AdGuardHome.AdGuardHome.old_redirect 2>/dev/null
-	uci delete AdGuardHome.AdGuardHome.old_port 2>/dev/null
-	uci delete AdGuardHome.AdGuardHome.old_enabled 2>/dev/null
+	# Use @AdGuardHome[0] to match CBI's anonymous TypedSection (anonymous=true)
+	uci delete AdGuardHome.@AdGuardHome[0].old_redirect 2>/dev/null
+	uci delete AdGuardHome.@AdGuardHome[0].old_port 2>/dev/null
+	uci delete AdGuardHome.@AdGuardHome[0].old_enabled 2>/dev/null
 	# ponytail: scalars stored via set, not add_list (list would stack on delete failure and break cleanup comparison)
-	uci set AdGuardHome.AdGuardHome.old_redirect="$redirect" 2>/dev/null
-	uci set AdGuardHome.AdGuardHome.old_port="$AdGuardHome_PORT" 2>/dev/null
-	uci set AdGuardHome.AdGuardHome.old_enabled="$enabled" 2>/dev/null
+	uci set AdGuardHome.@AdGuardHome[0].old_redirect="$redirect" 2>/dev/null
+	uci set AdGuardHome.@AdGuardHome[0].old_port="$AdGuardHome_PORT" 2>/dev/null
+	uci set AdGuardHome.@AdGuardHome[0].old_enabled="$enabled" 2>/dev/null
 	uci commit AdGuardHome
 
 	if [ "$enabled" == "0" ] || [ "$AdGuardHome_PORT" == "0" ]; then

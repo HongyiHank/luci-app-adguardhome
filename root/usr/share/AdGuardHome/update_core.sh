@@ -65,11 +65,16 @@ check_latest_version(){
 	fi
 }
 
+# Return OpenWrt arch flavour from /etc/os-release (e.g. mipsel, mips64el)
+_openwrt_arch_flavour() {
+	awk -F'=' '/^OPENWRT_ARCH=/{gsub(/"/,"",$2); split($2,a,"_"); print a[1]}' /etc/os-release
+}
+
 doupx(){
 	echo "Start running upx. It may take some time..."
 
 	um="$(uname -m)"
-	OPENWRT_ARCH="$(awk -F'=' '/^OPENWRT_ARCH=/{gsub(/"/,"",$2); split($2,a,"_"); print a[1]}' /etc/os-release)"
+	OPENWRT_ARCH="$(_openwrt_arch_flavour)"
 	case "$um" in
 		i386)    Arch="i386" ;;
 		i686)    Arch="i386"; echo "i686 use $Arch may have bug" ;;
@@ -108,7 +113,7 @@ doupdate_core(){
 	Arch=$(uci -q get AdGuardHome.AdGuardHome.arch)
 	if [ -z "$Arch" ]; then
 	um="$(uname -m)"
-	OPENWRT_ARCH="$(awk -F'=' '/^OPENWRT_ARCH=/{gsub(/"/,"",$2); split($2,a,"_"); print a[1]}' /etc/os-release)"
+	OPENWRT_ARCH="$(_openwrt_arch_flavour)"
 	case "$um" in
 		i386|i686)     Arch="386" ;;
 		x86_64)        Arch="amd64" ;;

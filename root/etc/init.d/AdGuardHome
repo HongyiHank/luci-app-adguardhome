@@ -348,8 +348,10 @@ backup() {
 	config_get backupfile $CONFIGURATION backupfile ""
 	for one in $backupfile;
 	do
-		while :
+		local retries=3
+		while [ $retries -gt 0 ];
 		do
+			retries=$((retries-1))
 			if [ -d "$backupwdpath/data/$one" ]; then
 				cpret=$(cp -u -r -f $workdir/data/$one $backupwdpath/data 2>&1)
 			else

@@ -53,7 +53,9 @@ o.validate=function(self, value)
 end
 o.write = function(self, section, value)
 	if not configpath then return end
-	fs.move("/tmp/AdGuardHometmpconfig.yaml", configpath)
+	if not fs.move("/tmp/AdGuardHometmpconfig.yaml", configpath) then
+		m.message = translate("Failed to save config file (disk full or permission error)")
+	end
 end
 o.remove = function(self, section, value)
 	if not configpath then return end

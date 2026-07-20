@@ -361,7 +361,7 @@ backup() {
 			echo "$cpret" | grep "no space left on device"
 			if [ "$?" == "0" ]; then
 				echo "Disk full, deleting log and retrying"
-				del_querylog && continue
+				del_querylog "$workdir" "$backupwdpath" && continue
 				rm -f -r $backupwdpath/data/filters
 				rm -f -r $workdir/data/filters && continue
 				echo "Backup failed"
@@ -532,8 +532,11 @@ reload_service()
 }
 
 del_querylog(){
-	local btarget=$(ls $backupwdpath/data | grep -F "querylog.json" | sort -r | head -n 1)
-	local wtarget=$(ls $workdir/data | grep -F "querylog.json" | sort -r | head -n 1)
+	local workdir="${1:-}"
+	local backupwdpath="${2:-}"
+	[ -z "$workdir" ] || [ -z "$backupwdpath" ] && return 1
+	local btarget=$(ls "$backupwdpath/data" 2>/dev/null | grep -F "querylog.json" | sort -r | head -n 1)
+	local wtarget=$(ls "$workdir/data" 2>/dev/null | grep -F "querylog.json" | sort -r | head -n 1)
 	if [ "$btarget"x == "$wtarget"x ]; then
 		[ -z "$btarget" ] && return 1
 		rm -f $workdir/data/$wtarget

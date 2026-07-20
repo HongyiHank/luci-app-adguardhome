@@ -253,6 +253,8 @@ o.optional = false
 local workdir=uci:get("AdGuardHome","AdGuardHome","workdir") or "/usr/bin/AdGuardHome"
 o = s:taboption("backup", MultiValue, "backupfile", translate("Backup workdir files when shutdown"))
 o1 = s:taboption("backup", Value, "backupwdpath", translate("Backup workdir path"))
+-- ponytail: OR logic so the field shows when ANY backupfile checkbox is selected
+o1.matchdep = true
 local name
 o:value("filters","filters")
 o:value("stats.db","stats.db")

@@ -520,7 +520,11 @@ start_service() {
 		fi
 	fi
 	echo "AdGuardHome service enabled"
+	# Track watchdog PID so stop_service can clean it up
+	# Remove stale PID first in case of crash without proper stop
+	rm -f /var/run/AdG_redir_wdog
 	(sleep 10 && [ -z "$(pgrep -f "[/]${binpath#/}")" ] && logger "AdGuardHome" "no process in 10s cancel redirect" && _do_redirect 0 )&
+	echo $! > /var/run/AdG_redir_wdog 2>/dev/null
 }
 reload_service()
 {
@@ -556,6 +560,9 @@ stop_service()
 	config_load "${CONFIGURATION}"
 	_do_redirect 0
 	update_crontab
+	# Kill orphan redirect watchdog if still running
+	kill $(cat /var/run/AdG_redir_wdog 2>/dev/null) 2>/dev/null
+	rm -f /var/run/AdG_redir_wdog
 	if [ "$1" != "nobackup" ]; then
 		config_get backupfile $CONFIGURATION backupfile ""
 		if [ -n "$backupfile" ]; then

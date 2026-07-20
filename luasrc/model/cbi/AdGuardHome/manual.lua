@@ -2,14 +2,10 @@ local m, s, o
 local fs = require "nixio.fs"
 local uci=require"luci.model.uci".cursor()
 local sys=require"luci.sys"
+local safe_path=require"luci.model.cbi.AdGuardHome.utils".safe_path
 require("string")
 require("io")
 require("table")
-
--- same rules as init.d valid_path / base.lua safe_path
-local function safe_path(p)
-	return p and p:match("^/[%w/._%-]+$") and not p:match("%.%.") and not p:find("//", 1, true)
-end
 
 m = Map("AdGuardHome")
 local configpath = uci:get("AdGuardHome","AdGuardHome","configpath")

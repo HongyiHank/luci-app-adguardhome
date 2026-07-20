@@ -2,10 +2,7 @@ require("luci.sys")
 local m,s,o,o1
 local fs=require"nixio.fs"
 local uci=require"luci.model.uci".cursor()
--- same rules as init.d valid_path: [A-Za-z0-9/._-], no .., no //
-local function safe_path(p)
-	return p and p:match("^/[%w/._%-]+$") and not p:match("%.%.") and not p:find("//", 1, true)
-end
+local safe_path=require"luci.model.cbi.AdGuardHome.utils".safe_path
 local function path_err(msg)
 	if m.message then
 		m.message = m.message.."\n"..msg

@@ -16,7 +16,7 @@ entry({"admin", "services", "AdGuardHome", "check"}, call("check_update"))
 entry({"admin", "services", "AdGuardHome", "doupdate"}, call("do_update"))
 entry({"admin", "services", "AdGuardHome", "getlog"}, call("get_log"))
 entry({"admin", "services", "AdGuardHome", "dodellog"}, call("do_dellog"))
-entry({"admin", "services", "AdGuardHome", "reloadconfig"}, call("reload_config"))
+entry({"admin", "services", "AdGuardHome", "reloadconfig"}, call("clear_temp_config"))
 entry({"admin", "services", "AdGuardHome", "gettemplateconfig"}, call("get_template_config"))
 end 
 function get_template_config()
@@ -30,7 +30,7 @@ function get_template_config()
 		http.write("")
 	end
 end
-function reload_config()
+function clear_temp_config()
 	fs.remove("/tmp/AdGuardHometmpconfig.yaml")
 	http.prepare_content("application/json")
 	http.write("{}")

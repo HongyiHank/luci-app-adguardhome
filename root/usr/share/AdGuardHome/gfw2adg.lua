@@ -157,20 +157,21 @@ local function b64decode(data)
         end
     end
 
-    for i = 1, len, 4 do
-        local c1, c2, c3, c4 = string.byte(data, i, i+3)
+	for i = 1, len, 4 do
+		if i + 3 > len then break end  -- incomplete group, skip
+		local c1, c2, c3, c4 = string.byte(data, i, i+3)
 
-        local v1 = b64map[c1]
-        local v2 = b64map[c2]
-        local v3 = b64map[c3]
-        local v4 = b64map[c4]
+		local v1 = b64map[c1] or 0
+		local v2 = b64map[c2] or 0
+		local v3 = b64map[c3] or 0
+		local v4 = b64map[c4] or 0
 
-        -- (v1 << 18) | (v2 << 12) | (v3 << 6) | v4
-        local packed = (v1 * 0x40000) + (v2 * 0x1000) + (v3 * 0x40) + v4
+		-- (v1 << 18) | (v2 << 12) | (v3 << 6) | v4
+		local packed = (v1 * 0x40000) + (v2 * 0x1000) + (v3 * 0x40) + v4
 
-        local b1 = math.floor(packed / 0x10000)
-        local b2 = math.floor((packed % 0x10000) / 0x100)
-        local b3 = packed % 0x100
+		local b1 = math.floor(packed / 0x10000)
+		local b2 = math.floor((packed % 0x10000) / 0x100)
+		local b3 = packed % 0x100
 
         table.insert(result, string.char(b1))
 

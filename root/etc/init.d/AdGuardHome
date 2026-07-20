@@ -577,52 +577,52 @@ test_crontab(){
 update_crontab(){
 	config_get_bool enabled $CONFIGURATION enabled 0
 	config_get crontab $CONFIGURATION crontab ""
-	local findstr default cronenable replace
+	local cronenable
 	local cronreload=0
 
-	findstr="/usr/share/AdGuardHome/addhost.sh"
-	default="0 * * * * /usr/share/AdGuardHome/addhost.sh"
+	local findstr="/usr/share/AdGuardHome/addhost.sh"
+	local default="0 * * * * /usr/share/AdGuardHome/addhost.sh"
 	[ "$enabled" == "0" ] || [ "${crontab//autohost/}" == "$crontab" ] && cronenable=0 || cronenable=1
-	crontab_editor
+	crontab_editor "$findstr" "$default" "$cronenable" && cronreload=$((cronreload+1))
 	[ "$cronenable" == "0" ] && /usr/share/AdGuardHome/addhost.sh "del" "noreload" || /usr/share/AdGuardHome/addhost.sh "" "noreload"
 
 	findstr="/usr/share/AdGuardHome/gfw2adg.sh"
 	default="30 3 * * * /usr/share/AdGuardHome/gfw2adg.sh"
 	[ "$enabled" == "0" ] || [ "${crontab//autogfw/}" == "$crontab" ] && cronenable=0 || cronenable=1
-	crontab_editor
+	crontab_editor "$findstr" "$default" "$cronenable" && cronreload=$((cronreload+1))
 
 	findstr="/usr/share/AdGuardHome/gfwipset2adg.sh"
 	default="31 3 * * * /usr/share/AdGuardHome/gfwipset2adg.sh"
 	[ "$enabled" == "0" ] || [ "${crontab//autogfwipset/}" == "$crontab" ] && cronenable=0 || cronenable=1
-	crontab_editor
+	crontab_editor "$findstr" "$default" "$cronenable" && cronreload=$((cronreload+1))
 	[ "$cronreload" -gt 0 ] && /etc/init.d/cron restart
 }
 crontab_editor(){
+	local findstr="$1"
+	local default="$2"
+	local cronenable="$3"
+	[ -z "$findstr" ] && return 1
+	[ -z "$default" ] && return 1
+	: "${cronenable:=0}"
 	[ ! -f "$CRON_FILE" ] && mkdir -p ${CRON_FILE%/*} && touch "$CRON_FILE" && chmod 600 "$CRON_FILE"
-	#usage input:
-	#findstr=
-	#default=
-	#cronenable=
-	#replace="${last//\//\\/}/${now//\//\\/}"
-	#output:cronreload:if >1 please /etc/init.d/cron restart manual
-	local line="$(grep "$findstr" $CRON_FILE)"
+	local line="$(grep "$findstr" "$CRON_FILE" 2>/dev/null)"
 	if [ "${line:0:1}" != "#" ]; then
 		if [ $cronenable -eq 1 ]; then
 			if [ -z "$line" ]; then
 				line="$default"
-				sed -i "\,$findstr,d" $CRON_FILE
-				echo "$line" >> $CRON_FILE
-				cronreload=$((cronreload+1))
+				sed -i "\,"$findstr",d" "$CRON_FILE"
+				echo "$line" >> "$CRON_FILE"
+				return 0
 			fi
 		elif [ -n "$line" ]; then
-			sed -i "\,$findstr,d" $CRON_FILE
-			echo "#$line" >> $CRON_FILE
-			cronreload=$((cronreload+1))
+			sed -i "\,"$findstr",d" "$CRON_FILE"
+			echo "#$line" >> "$CRON_FILE"
+			return 0
 		fi
 	elif [ $cronenable -eq 1 ]; then
-		# Uncomment existing entry
-		sed -i "\,$findstr,d" $CRON_FILE
-		echo "${line:1}" >> $CRON_FILE
-		cronreload=$((cronreload+1))
+		sed -i "\,"$findstr",d" "$CRON_FILE"
+		echo "${line:1}" >> "$CRON_FILE"
+		return 0
 	fi
+	return 1
 }

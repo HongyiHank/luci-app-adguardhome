@@ -221,8 +221,11 @@ _do_redirect()
 		set_firewall
 	elif [ "$redirect" = "dnsmasq-upstream" ]; then
 		start_forward_dnsmasq
-	elif [ "$redirect" == "exchange" -a "$(uci get dhcp.@dnsmasq[0].port 2>/dev/null)" == "53" ]; then
-		use_port53
+	elif [ "$redirect" == "exchange" ]; then
+		if [ "$(uci get dhcp.@dnsmasq[0].port 2>/dev/null)" == "53" ]; then
+			use_port53
+		fi
+		# else ports already swapped — redirected stays 1
 	else
 		redirected=0
 	fi

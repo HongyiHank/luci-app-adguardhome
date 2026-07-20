@@ -73,11 +73,9 @@ function get_log()
 	elseif logfile=="syslog" then
 		if not fs.access("/var/run/AdG_syslog") then
 			luci.sys.exec("/usr/share/AdGuardHome/getsyslog.sh >/dev/null 2>&1 &")
-			-- Poll for the log file instead of a blind sleep(1);
-			-- getsyslog.sh writes initial output synchronously before the follow loop.
-			for _ = 1, 10 do
+			for _ = 1, 4 do
 				if fs.access("/tmp/AdGuardHome.log") then break end
-				luci.sys.call("sleep 0.2 >/dev/null 2>&1")
+				luci.sys.call("sleep 0.5 >/dev/null 2>&1")
 			end
 		end
 		logfile="/tmp/AdGuardHome.log"

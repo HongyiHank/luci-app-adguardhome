@@ -123,11 +123,11 @@ o.rmempty=false
 o.validate=function(self, value)
 	if not value or value=="" then return nil end
 	if not safe_path(value) then
-		path_err("error!bin path is invalid")
+		path_err(translate("error!bin path is invalid"))
 		return nil
 	end
 	if fs.stat(value,"type")=="dir" then
-		path_err("error!bin path is a dir")
+		path_err(translate("error!bin path is a dir"))
 		return nil
 	end
 	return value
@@ -171,11 +171,11 @@ o.rmempty=false
 o.validate=function(self, value)
 	if not value or value=="" then return nil end
 	if not safe_path(value) then
-		path_err("error!config path is invalid")
+		path_err(translate("error!config path is invalid"))
 		return nil
 	end
 	if fs.stat(value,"type")=="dir" then
-		path_err("error!config path is a dir")
+		path_err(translate("error!config path is a dir"))
 		return nil
 	end
 	return value
@@ -193,11 +193,11 @@ o.validate=function(self, value)
 		value = string.sub(value, 1, -2)
 	end
 	if not safe_path(value) then
-		path_err("error!work dir is invalid")
+		path_err(translate("error!work dir is invalid"))
 		return nil
 	end
 	if fs.stat(value,"type")=="reg" then
-		path_err("error!work dir is a file")
+		path_err(translate("error!work dir is a file"))
 		return nil
 	end
 	return value
@@ -212,11 +212,11 @@ o.validate=function(self, value)
 		return value
 	end
 	if not safe_path(value) then
-		path_err("error!log file is invalid")
+		path_err(translate("error!log file is invalid"))
 		return nil
 	end
 	if fs.stat(value,"type")=="dir" then
-		path_err("error!log file is a dir")
+		path_err(translate("error!log file is a dir"))
 		return nil
 	end
 	return value
@@ -289,11 +289,11 @@ o1.validate=function(self, value)
 		value = string.sub(value, 1, -2)
 	end
 	if not safe_path(value) then
-		path_err("error!backup dir is invalid")
+		path_err(translate("error!backup dir is invalid"))
 		return nil
 	end
 	if fs.stat(value,"type")=="reg" then
-		path_err("error!backup dir is a file")
+		path_err(translate("error!backup dir is a file"))
 		return nil
 	end
 	return value

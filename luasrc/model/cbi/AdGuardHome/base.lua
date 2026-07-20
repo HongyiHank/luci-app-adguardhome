@@ -32,9 +32,7 @@ if not has_section then
 		downloadlinks = "https://github.com/AdguardTeam/AdGuardHome/releases/download/${latest_ver}/AdGuardHome_linux_${Arch}.tar.gz\nhttps://static.adguard.com/adguardhome/release/AdGuardHome_linux_${Arch}.tar.gz\n#https://static.adguard.com/adguardhome/beta/AdGuardHome_linux_${Arch}.tar.gz"
 	})
 	uci:commit("AdGuardHome")
-	configpath = uci:get("AdGuardHome","AdGuardHome","configpath") or "/etc/AdGuardHome.yaml"
-	binpath = uci:get("AdGuardHome","AdGuardHome","binpath") or "/usr/bin/AdGuardHome/AdGuardHome"
-	httpport = uci:get("AdGuardHome","AdGuardHome","httpport") or "3000"
+	-- ponytail: variables already set via the `or` defaults above — no need to re-read UCI
 end
 m = Map("AdGuardHome", "AdGuard Home")
 m.description = translate("A powerful LuCI interface for managing AdGuard Home - a DNS-based ad and tracker blocker that protects all devices on your network").."<br/>"..translate("<a href=\"https://github.com/stevenjoezhang/luci-app-adguardhome\" target=\"_blank\">⭐ Star on GitHub</a>")

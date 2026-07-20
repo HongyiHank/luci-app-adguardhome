@@ -25,10 +25,14 @@ check_wgetcurl(){
 	echo "Checking for wget or curl..."
 	mkdl
 	[ -n "$downloader" ] && return
-	[ -z "$1" ] && opkg update || (echo "Failed to run opkg update" && EXIT 1)
+	if [ -z "$1" ]; then
+		opkg update || { echo "Failed to run opkg update"; EXIT 1; }
+		opkg install wget
+		check_wgetcurl 1
+		return
+	fi
 	# ponytail: never opkg remove --force-depends; just install the downloader (Makefile already pulls curl when both absent)
-	[ -z "$1" ] && (opkg install wget ; check_wgetcurl 1 ;return)
-	[ "$1" = "1" ] && (opkg install curl ; check_wgetcurl 2 ; return)
+	[ "$1" = "1" ] && { opkg install curl; check_wgetcurl 2; return; }
 	echo "Error: curl and wget not found" && EXIT 1
 }
 
